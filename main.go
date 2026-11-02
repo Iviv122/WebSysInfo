@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/elastic/go-sysinfo"
+	"github.com/elastic/go-sysinfo/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,11 +44,22 @@ func DumpGO() map[string]any {
 	return body
 }
 
+func Dump() []types.Process {
+
+	proc, err := sysinfo.Processes()
+	if err != nil {
+		return proc
+	} else {
+		return nil
+	}
+}
+
 func handle(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
 		"body": gin.H{
-			"host": HostDump(ctx),
-			"go":   DumpGO(),
+			"host":      HostDump(ctx),
+			"go":        DumpGO(),
+			"processes": Dump(),
 		},
 	})
 }
