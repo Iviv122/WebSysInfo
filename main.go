@@ -5,20 +5,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var fqdn string = ""
+
 func HostDump(ctx *gin.Context) map[string]any {
 	host, err := sysinfo.Host()
 	if err != nil {
 		return nil
 	}
+
 	body := gin.H{}
 	body["host"] = host.Info()
 	body["uptime"] = host.Info().Uptime()
+	mem, err := host.Memory()
+	if err != nil {
+		body["memory"] = nil
+	} else {
+
+		body["memory"] = mem
+	}
+	cpu, err := host.CPUTime()
+	if err != nil {
+		body["cpu"] = nil
+	} else {
+		body["cpu"] = cpu
+	}
 	return body
+}
+
+func dump() map[string]any {
+	sysinfo.Go()
 }
 
 func handle(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
-		"body": HostDump(ctx),
+		"body": gin.H{
+			"host": HostDump(ctx),
+			"go":   dump(),
+		},
 	})
 }
 
