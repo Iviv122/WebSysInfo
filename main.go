@@ -32,15 +32,22 @@ func HostDump(ctx *gin.Context) map[string]any {
 	return body
 }
 
-func dump() map[string]any {
-	sysinfo.Go()
+func DumpGO() map[string]any {
+	body := gin.H{}
+
+	body["arch"] = sysinfo.Go().Arch
+	body["maxprocs"] = sysinfo.Go().MaxProcs
+	body["os"] = sysinfo.Go().OS
+	body["version"] = sysinfo.Go().Version
+
+	return body
 }
 
 func handle(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
 		"body": gin.H{
 			"host": HostDump(ctx),
-			"go":   dump(),
+			"go":   DumpGO(),
 		},
 	})
 }
