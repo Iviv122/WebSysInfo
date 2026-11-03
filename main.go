@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log"
+	"os"
+
 	"github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
 	"github.com/gin-gonic/gin"
@@ -65,11 +68,17 @@ func handle(ctx *gin.Context) {
 }
 
 func main() {
-
 	r := gin.Default()
 	r.NoRoute(handle)
 	r.NoMethod(handle)
 	gin.SetMode(gin.ReleaseMode)
-	r.Run()
-
+	var err error = nil
+	if len(os.Args) >= 2 {
+		err = r.Run(os.Args[1])
+	} else {
+		err = r.Run()
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
 }
