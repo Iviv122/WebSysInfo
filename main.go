@@ -47,7 +47,7 @@ func DumpGO() map[string]any {
 	return body
 }
 
-func Dump() []types.Process {
+func DumpProcesses() []types.Process {
 
 	proc, err := sysinfo.Processes()
 	if err != nil {
@@ -59,26 +59,33 @@ func Dump() []types.Process {
 
 func handle(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
-		"body": gin.H{
-			"host":      HostDump(ctx),
-			"go":        DumpGO(),
-			"processes": Dump(),
-		},
+		"host":      HostDump(ctx),
+		"go":        DumpGO(),
+		"processes": DumpProcesses(),
 	})
 }
 
 func main() {
-	r := gin.Default()
-	r.NoRoute(handle)
-	r.NoMethod(handle)
+	router := gin.Default()
+
+	auth := router.Group("/", gin.BasicAuth(gin.Accounts{
+		"foo":    "bar1",
+		"austin": "1234",
+		"lena":   "hello2",
+		"manu":   "4321",
+	}))
+
+	auth.GET("/", handle)
 	gin.SetMode(gin.ReleaseMode)
+
 	var err error = nil
 	if len(os.Args) >= 2 {
-		err = r.Run(os.Args[1])
+		err = router.Run(os.Args[1])
 	} else {
-		err = r.Run()
+		err = router.Run()
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }
