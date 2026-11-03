@@ -2,14 +2,12 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
 	"github.com/gin-gonic/gin"
+	"github.com/nuskey8/go-cliapp"
 )
-
-var fqdn string = ""
 
 func HostDump(ctx *gin.Context) map[string]any {
 	host, err := sysinfo.Host()
@@ -65,7 +63,7 @@ func handle(ctx *gin.Context) {
 	})
 }
 
-func main() {
+func run(addr string) {
 	router := gin.Default()
 
 	auth := router.Group("/", gin.BasicAuth(gin.Accounts{
@@ -74,18 +72,41 @@ func main() {
 		"lena":   "hello2",
 		"manu":   "4321",
 	}))
-
 	auth.GET("/", handle)
-	gin.SetMode(gin.ReleaseMode)
 
-	var err error = nil
-	if len(os.Args) >= 2 {
-		err = router.Run(os.Args[1])
-	} else {
-		err = router.Run()
-	}
+	gin.SetMode(gin.ReleaseMode)
+	err := router.Run(addr)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+func runAuth(addr string, username string, password string) {
+	router := gin.Default()
 
+	auth := router.Group("/", gin.BasicAuth(gin.Accounts{
+		username: password,
+	}))
+	auth.GET("/", handle)
+
+	gin.SetMode(gin.ReleaseMode)
+	err := router.Run(addr)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func main() {
+	app := cliapp.Default()
+
+	app.Add("", "addr", func(addr string) {
+		log.Print("Standard start")
+		run(addr)
+	})
+
+	app.Add("-a", "-u addr username password", func(addr string, username string, password string) {
+		log.Print("Auth start")
+		runAuth(addr, username, password)
+	})
+
+	app.Run()
 }
